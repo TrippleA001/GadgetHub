@@ -3,38 +3,41 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
+# Configuration
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1w2QpOugxd_gHw2r2nZyQo_IEGwoQPUcQIWNtdLEy0us/edit"
+
 # Create a connection object
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # --- Read Data from Multiple Sheets ---
 # Read Sheet 1 (Products)
 # This sheet contains details about the products GadgetHub sells.
-products_data = conn.read(worksheet="Products")
+products_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Products")
 df_products = pd.DataFrame(products_data)
 
 # Read Sheet 2 (Sales Reps)
 # This sheet holds information about the sales representatives.
-sales_reps_data = conn.read(worksheet="Sales Reps")
+sales_reps_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Sales Reps")
 df_sales_reps = pd.DataFrame(sales_reps_data)
 
 # Read Sheet 3 (Real-time Sales Record from Google Form)
 # This sheet is fed by a Google Form for new sales entries.
-sales_data = conn.read(worksheet="Sales Record")
+sales_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Sales Record")
 df_sales = pd.DataFrame(sales_data)
 
 # Read Sheet 4 (Historical Sales Records)
 # This sheet contains older sales data.
-historical_sales_data = conn.read(worksheet="Sales Records")
+historical_sales_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Sales Records")
 df_historical_sales = pd.DataFrame(historical_sales_data)
 
 # Read Sheet 5 (Individual KPIs)
 # This sheet stores data related to Key Performance Indicators for individuals.
-kpi_data = conn.read(worksheet="KPI Settings")
+kpi_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="KPI Settings")
 df_kpi = pd.DataFrame(kpi_data)
 
 # Read Sheet 6 (Processed Sales Records)
 # This sheet contains data that has undergone calculations.
-processed_sales_data = conn.read(worksheet="Calculations")
+processed_sales_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Calculations")
 df_processed_sales = pd.DataFrame(processed_sales_data)
 
 # --- Streamlit App Layout ---
