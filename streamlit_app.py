@@ -1,44 +1,76 @@
 # Import dependencies
 import streamlit as st
 import pandas as pd
-from streamlit_gsheets import GSheetsConnection
+import gspread # New import
+import json # New import
 
-# Configuration
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1w2QpOugxd_gHw2r2nZyQo_IEGwoQPUcQIWNtdLEy0us/edit"
+# --- Configuration ---
+# Define the Spreadsheet ID (NOT the full URL for gspread)
+# This ID is used by gspread to open the specific Google Sheet.
+GOOGLE_SHEET_ID = "1w2QpOugxd_gHw2r2nZyQo_IEGwoQPUcQIWNtdLEy0us" 
 
-# Create a connection object
-conn = st.connection("gsheets", type=GSheetsConnection)
+# --- Gspread Authentication and Connection ---
+@st.cache_resource # Cache the connection to avoid re-authenticating on every rerun
+def get_gspread_client():
+    # Load the service account credentials from Streamlit secrets
+    # The key 'gcp_service_account' must match what you put in secrets.toml
+    service_account_info = json.loads(st.secrets["gcp_service_account"])
+    
+    # Authorize gspread with the service account credentials
+    gc = gspread.service_account_from_dict(service_account_info)
+    return gc
 
-# --- Read Data from Multiple Sheets ---
+# Get the gspread client
+gc = get_gspread_client()
+
+# Open the Google Spreadsheet by its ID
+try:
+    spreadsheet = gc.open_by_id(GOOGLE_SHEET_ID)
+except gspread.exceptions.SpreadsheetNotFound:
+    st.error(f"Error: Google Spreadsheet with ID '{GOOGLE_SHEET_ID}' not found or accessible. "
+             "Please check the ID and sharing permissions for your service account.")
+    st.stop() # Stop the app if the spreadsheet isn't found
+except Exception as e:
+    st.error(f"Error connecting to Google Spreadsheet: {e}")
+    st.stop()
+
+# --- Read Data from Multiple Worksheets using gspread ---
+
+# Function to read a worksheet into a DataFrame
+@st.cache_data(ttl=3600) # Cache data for 1 hour to reduce API calls
+def load_worksheet_data(sheet_obj, worksheet_name):
+    try:
+        # Select the worksheet by name
+        worksheet = sheet_obj.worksheet(worksheet_name)
+        # Get all records as a list of dictionaries (Pandas can convert this easily)
+        data = worksheet.get_all_records()
+        df = pd.DataFrame(data)
+        return df
+    except gspread.exceptions.WorksheetNotFound:
+        st.error(f"Error: Worksheet '{worksheet_name}' not found in the spreadsheet.")
+        return pd.DataFrame() # Return empty DataFrame on error
+    except Exception as e:
+        st.error(f"Error reading worksheet '{worksheet_name}': {e}")
+        return pd.DataFrame()
+
 # Read Sheet 1 (Products)
-# This sheet contains details about the products GadgetHub sells.
-products_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Products")
-df_products = pd.DataFrame(products_data)
+df_products = load_worksheet_data(spreadsheet, "Products")
 
 # Read Sheet 2 (Sales Reps)
-# This sheet holds information about the sales representatives.
-sales_reps_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Sales Reps")
-df_sales_reps = pd.DataFrame(sales_reps_data)
+df_sales_reps = load_worksheet_data(spreadsheet, "Sales Reps")
 
 # Read Sheet 3 (Real-time Sales Record from Google Form)
-# This sheet is fed by a Google Form for new sales entries.
-sales_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Sales Record")
-df_sales = pd.DataFrame(sales_data)
+df_sales = load_worksheet_data(spreadsheet, "Sales Record")
 
 # Read Sheet 4 (Historical Sales Records)
-# This sheet contains older sales data.
-historical_sales_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Sales Records")
-df_historical_sales = pd.DataFrame(historical_sales_data)
+df_historical_sales = load_worksheet_data(spreadsheet, "Sales Records")
 
 # Read Sheet 5 (Individual KPIs)
-# This sheet stores data related to Key Performance Indicators for individuals.
-kpi_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="KPI Settings")
-df_kpi = pd.DataFrame(kpi_data)
+df_kpi = load_worksheet_data(spreadsheet, "KPI Settings")
 
 # Read Sheet 6 (Processed Sales Records)
-# This sheet contains data that has undergone calculations.
-processed_sales_data = conn.read(spreadsheet=GOOGLE_SHEET_URL, worksheet="Calculations")
-df_processed_sales = pd.DataFrame(processed_sales_data)
+df_processed_sales = load_worksheet_data(spreadsheet, "Calculations")
+
 
 # --- Streamlit App Layout ---
 
@@ -47,7 +79,7 @@ st.title("GadgetHub Datasets Dashboard")
 st.markdown("""
 Welcome to the GadgetHub Data Dashboard! This application allows you to explore various datasets
 related to our products, sales operations, and performance metrics, all sourced directly from
-Google Sheets. Use the tabs below to navigate through different data views.
+Google Sheets using `gspread`. Use the tabs below to navigate through different data views.
 """)
 
 # Define tabs for each sheet
