@@ -96,9 +96,8 @@ with tab_processed_sales:
 
 st.markdown("---") # A horizontal rule for separation
 st.markdown("""
-This dashboard provides a centralized view of GadgetHub's key operational data,
-facilitating quick insights and decision-making.
+You can read the [LinkedIn post here](https://www.linkedin.com/posts/abdul-samad-abdul-jaleel_grassrootsdatascience-dashboardthinking-buildwhatmatters-activity-7347403678149967872-Dnv3 '🟢 No Data? No Problem: What I Built, What I Found')
 """)
 st.markdown("""
-For more detailed analysis or specific reports, please refer to the respective data sources.
+For more detailed analysis or specific reports, send a DM.
 """)
