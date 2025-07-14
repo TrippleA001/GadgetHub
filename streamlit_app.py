@@ -37,39 +37,44 @@ except Exception as e:
 # --- Read Data from Multiple Worksheets using gspread ---
 
 # Function to read a worksheet into a DataFrame
-@st.cache_data(ttl=3600) # Cache data for 1 hour to reduce API calls
-def load_worksheet_data(sheet_obj, worksheet_name):
+@st.cache_data(ttl=3600) # Cache data for 1 hour
+def load_worksheet_data(spreadsheet_id, worksheet_name): # Changed signature
+    # Get the gspread client again (it's cached, so this is fast)
+    gc_internal = get_gspread_client()
+    
+    # Open the spreadsheet inside the cached function
+    # This ensures the spreadsheet object is created within the scope of the cached function's run
+    # and not passed as an unhashable parameter.
     try:
-        # Select the worksheet by name
-        worksheet = sheet_obj.worksheet(worksheet_name)
-        # Get all records as a list of dictionaries (Pandas can convert this easily)
+        sheet_obj_internal = gc_internal.open_by_key(spreadsheet_id)
+        worksheet = sheet_obj_internal.worksheet(worksheet_name)
         data = worksheet.get_all_records()
         df = pd.DataFrame(data)
         return df
     except gspread.exceptions.WorksheetNotFound:
         st.error(f"Error: Worksheet '{worksheet_name}' not found in the spreadsheet.")
-        return pd.DataFrame() # Return empty DataFrame on error
+        return pd.DataFrame()
     except Exception as e:
         st.error(f"Error reading worksheet '{worksheet_name}': {e}")
         return pd.DataFrame()
 
 # Read Sheet 1 (Products)
-df_products = load_worksheet_data(spreadsheet, "Products")
+df_products = load_worksheet_data(GOOGLE_SHEET_ID, "Products")
 
 # Read Sheet 2 (Sales Reps)
-df_sales_reps = load_worksheet_data(spreadsheet, "Sales Reps")
+df_sales_reps = load_worksheet_data(GOOGLE_SHEET_ID, "Sales Reps")
 
 # Read Sheet 3 (Real-time Sales Record from Google Form)
-df_sales = load_worksheet_data(spreadsheet, "Sales Record")
+df_sales = load_worksheet_data(GOOGLE_SHEET_ID, "Sales Record")
 
 # Read Sheet 4 (Historical Sales Records)
-df_historical_sales = load_worksheet_data(spreadsheet, "Sales Records")
+df_historical_sales = load_worksheet_data(GOOGLE_SHEET_ID, "Sales Records")
 
 # Read Sheet 5 (Individual KPIs)
-df_kpi = load_worksheet_data(spreadsheet, "KPI Settings")
+df_kpi = load_worksheet_data(GOOGLE_SHEET_ID, "KPI Settings")
 
 # Read Sheet 6 (Processed Sales Records)
-df_processed_sales = load_worksheet_data(spreadsheet, "Calculations")
+df_processed_sales = load_worksheet_data(GOOGLE_SHEET_ID, "Calculations")
 
 
 # --- Streamlit App Layout ---
