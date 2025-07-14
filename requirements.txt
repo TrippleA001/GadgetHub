@@ -1,5 +1,6 @@
-streamlit
+streamlit>=1.30.0
 pandas
-gspread
-numpy
-
+gspread>=5.0.0  # Ensure a recent version of gspread
+google-auth>=2.0.0 # gspread depends on this for auth
+google-auth-httplib2 # Often needed for gspread
+google-api-python-client # Often needed for gspread
