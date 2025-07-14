@@ -25,7 +25,7 @@ gc = get_gspread_client()
 
 # Open the Google Spreadsheet by its ID
 try:
-    spreadsheet = gc.open_by_id(GOOGLE_SHEET_ID)
+    spreadsheet = gc.open_by_key(GOOGLE_SHEET_ID)
 except gspread.exceptions.SpreadsheetNotFound:
     st.error(f"Error: Google Spreadsheet with ID '{GOOGLE_SHEET_ID}' not found or accessible. "
              "Please check the ID and sharing permissions for your service account.")
