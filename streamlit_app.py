@@ -79,10 +79,10 @@ df_processed_sales = load_worksheet_data(GOOGLE_SHEET_ID, "Calculations")
 
 # --- Streamlit App Layout ---
 
-st.title("GadgetHub Datasets Dashboard")
+st.title("GadgetHub Data")
 
 st.markdown("""
-Welcome to the GadgetHub Data Dashboard! This application allows you to explore various datasets
+Welcome to the GadgetHub Data! This application allows you to explore various datasets
 related to our products, sales operations, and performance metrics, all sourced directly from
 Google Sheets using `gspread`. Use the tabs below to navigate through different data views.
 """)
